@@ -1,28 +1,51 @@
-var core = {
-	moveTabLeft: function(command, event, resp) {
-		chrome.tabs.getSelected(null, function(tab){
-			if (tab.index > 0) {
-				chrome.tabs.move(tab.id,{index: tab.index-1},null);
-			}
-		});
-	},
-	moveTabRight: function(command, event, resp) {
-		chrome.tabs.getSelected(null, function(tab){
-			chrome.tabs.move(tab.id,{index: tab.index+1},null);
-		});
-	},
-	moveTabLeftMost: function(command, event, resp) {
-		chrome.tabs.getSelected(null, function(tab){
-			if (tab.index > 0)
-				chrome.tabs.move(tab.id,{index: 0},null);
-		});
-	},
-	moveTabRightMost: function(command, event, resp) {
-		chrome.tabs.getSelected(null, function(tab){
-			chrome.tabs.move(tab.id,{index: 1000},null); //max 1000
-		});
-	},
-}
+var core = (function(){
+	var pinnedTabStatus = {};
+	
+	return {
+		moveTabLeft: function(command, event, resp) {
+			chrome.tabs.getSelected(null, function(tab){
+				if (tab.index > 0) {
+					chrome.tabs.move(tab.id,{index: tab.index-1},null);
+				}
+			});
+		},
+		moveTabRight: function(command, event, resp) {
+			chrome.tabs.getSelected(null, function(tab){
+				chrome.tabs.move(tab.id,{index: tab.index+1},null);
+			});
+		},
+		moveTabLeftMost: function(command, event, resp) {
+			chrome.tabs.getSelected(null, function(tab){
+				if (tab.index > 0)
+					chrome.tabs.move(tab.id,{index: 0},null);
+			});
+		},
+		moveTabRightMost: function(command, event, resp) {
+			chrome.tabs.getSelected(null, function(tab){
+				chrome.tabs.move(tab.id,{index: 1000},null); //max 1000
+			});
+		},
+		duplicateTab: function(command, event, resp) {
+			chrome.tabs.getSelected(null, function(tab){
+				chrome.tabs.duplicate(tab.id, null);
+			});	
+		},
+		pinTab: function(command, event, resp) {
+			chrome.tabs.getSelected(null, function(tab){
+				if (!tab.pinned) {
+					pinnedTabStatus[tab.id] = {index: tab.index};
+					chrome.tabs.update(tab.id, {pinned: true}, null);
+				} else {
+					var info = pinnedTabStatus[tab.id];
+					chrome.tabs.update(tab.id, {pinned: false}, null);
+					if (info) {
+						chrome.tabs.move(tab.id,{index: info.index},null);
+					}
+				}
+			});
+		},
+	};
+})();
 
 var commandCore = {
 	listCommands: function(cmd, event, resp) {
@@ -43,6 +66,14 @@ var commandCore = {
 				"name": "MoveTabRightMost",
 				"bind": "ctrl+shift+alt+right"
 			},
+			{
+				"name": "DuplicateTab",
+				"bind": "ctrl+shift+command+d"
+			},
+			{
+				"name": "PinTab",
+				"bind": "ctrl+shift+command+p"
+			}
 		];
 		resp("value", value);
 	}
@@ -58,7 +89,9 @@ var module = (function(){
 			"MoveTabLeft": [c.moveTabLeft, pd],
 			"MoveTabRight": [c.moveTabRight, pd],
 			"MoveTabLeftMost": [c.moveTabLeftMost, pd],
-			"MoveTabRightMost": [c.moveTabRightMost, pd]
+			"MoveTabRightMost": [c.moveTabRightMost, pd],
+			"DuplicateTab": [c.duplicateTab, pd],
+			"PinTab": [c.pinTab, pd]
 		},
 		"Control": {
 			"Commands": [cc.listCommands]

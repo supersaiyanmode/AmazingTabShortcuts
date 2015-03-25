@@ -1,0 +1,39 @@
+{
+	"background": {
+		"persistent": false,
+		"scripts": [
+			"Background/core.js"
+		]
+	},
+	"content_scripts": [
+		{
+			"all_frames": true,
+			"js": [
+				"content_script/mousetrap.min.js",
+				"content_script/keyboardlistener.js"
+			],
+			"matches": [
+				"https://*/*",
+				"http://*/*"
+			],
+			"run_at": "document_start"
+		}
+	],
+	"description": "Make the Tabbed-browsing easier and cooler with these set of shortcut keys..!",
+	"icons": {
+		"128": "icons/icon128.png",
+		"16": "icons/icon16.png",
+		"32": "icons/icon16.png",
+		"48": "icons/icon128.png"
+	},
+	"key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC/C8HEEErmi5DmTrhhQteO4YBq3WjyKD4lzurCuN5tAVUISQXgQGXp3bsdpEGFUGjFTdWkNq+cSkmRlS+ds6kNniGOj/YbTse8RUTdm3BO7LFzmgCD6Fp5rp2gt9gCW6Iy8je4ohbfUAbLmNAuvM+KE/sYwsn7CemotgUuPvt6pwIDAQAB",
+	"manifest_version": 2,
+	"name": "Amazing Tab Shortcuts",
+	"permissions": [
+		"tabs",
+		"http://*/*",
+		"https://*/*"
+	],
+	"update_url": "http://clients2.google.com/service/update2/crx",
+	"version": "0.0.1"
+}

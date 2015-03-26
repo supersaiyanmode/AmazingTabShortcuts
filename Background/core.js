@@ -136,15 +136,15 @@ var commandCore = {
 var module = (function(){
 	var c = core;
 	var cc = commandCore;
-	var pd = function(cmd, event, resp) { resp("event", false); };
+
 	var handlers = {
 		"Tab": {
-			"MoveTabLeft": [c.moveTabLeft, pd],
-			"MoveTabRight": [c.moveTabRight, pd],
-			"MoveTabLeftMost": [c.moveTabLeftMost, pd],
-			"MoveTabRightMost": [c.moveTabRightMost, pd],
-			"DuplicateTab": [c.duplicateTab, pd],
-			"PinTab": [c.pinTab, pd]
+			"MoveTabLeft": [c.moveTabLeft],
+			"MoveTabRight": [c.moveTabRight],
+			"MoveTabLeftMost": [c.moveTabLeftMost],
+			"MoveTabRightMost": [c.moveTabRightMost],
+			"DuplicateTab": [c.duplicateTab],
+			"PinTab": [c.pinTab],
 			"MoveTabOut": [c.moveTabOut],
 			"MoveTabIn": [c.moveTabIn],
 		},

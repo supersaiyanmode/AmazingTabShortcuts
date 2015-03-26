@@ -17,26 +17,22 @@ function messageManager(port){
 		}
 		
 		var respFn = messageQueue[obj.id].respFn;
-		var event = messageQueue[obj.id].event;
 		
 		delete messageQueue[obj.id];
 		
-		if (obj.response.event === false) {
-			event.preventDefault();
-		}
 		if (respFn) {
 			respFn(obj.response);
 		}
 	});
 	
 	return {
-		send: function(evt, cmd, resp){
+		send: function(cmd, resp){
 			var id = uuid()
 			var obj = {
 				id: id,
 				command: cmd
 			}
-			messageQueue[id] = {respFn: resp, event: evt}
+			messageQueue[id] = {respFn: resp}
 			port.postMessage(obj);
 		}
 	}
@@ -55,7 +51,7 @@ var client = (function(){
 			tabMessaging = messageManager(tabPort);
 			controlMessaging = messageManager(controlPort);
 			
-			controlMessaging.send(null,{name:"Commands"},function(cmd){
+			controlMessaging.send({name:"Commands"},function(cmd){
 				commands = cmd.value;
 				doneFn();
 			});
@@ -63,8 +59,8 @@ var client = (function(){
 		commands: function() {
 			return commands;
 		},
-		process: function(event, command) {
-			tabMessaging.send(event, {name:command}, function(resp){});
+		process: function(command) {
+			tabMessaging.send({name:command}, function(resp){});
 		}
 	};
 }());
@@ -75,7 +71,7 @@ var mouseTrap = (function(){
 			Mousetrap.reset();
 			commands.forEach(function(cmd) {
 				Mousetrap.bind(cmd.bind, function(event) {
-					callback(event, cmd.name);
+					callback(cmd.name);
 				});
 			})
 			doneFn();

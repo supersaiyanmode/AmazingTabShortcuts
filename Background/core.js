@@ -1,5 +1,6 @@
 var core = (function(){
 	var pinnedTabStatus = {};
+	var tabMovementStatus = {};
 	
 	return {
 		moveTabLeft: function(command, event, resp) {
@@ -23,6 +24,50 @@ var core = (function(){
 		moveTabRightMost: function(command, event, resp) {
 			chrome.tabs.getSelected(null, function(tab){
 				chrome.tabs.move(tab.id,{index: 1000},null); //max 1000
+			});
+		},
+		moveTabOut: function(command, event, resp) {
+			chrome.tabs.getSelected(null, function(curTab) {
+				chrome.windows.create({tabId:curTab.id}, function(window){
+					if (!tabMovementStatus[curTab.id]) {
+						tabMovementStatus[curTab.id] = [];
+					}
+					tabMovementStatus[curTab.id].push({
+						fromWindowId: curTab.windowId,
+						toWindowId: window.id,
+						fromWindowIndex: curTab.index,
+						tabId: curTab.id
+					});
+					chrome.tabs.update(curTab.id,{selected:true},null);
+				});
+			});
+		},
+		moveTabIn: function(command, event, resp) {
+			chrome.tabs.getSelected(null, function(curTab) {
+				var tabInfos = tabMovementStatus[curTab.id];
+				if (!tabInfos) {
+					return;
+				}
+				chrome.windows.getAll({populate:true}, function(windows) {
+					var relevantTabInfos = tabInfos.reverse().filter(function(tabInfo) {
+						return windows.some(function(window) {
+							return tabInfo.fromWindowId == window.id;
+						});
+					})
+					if (!relevantTabInfos.length) {
+						return;
+					}
+					var windowId = relevantTabInfos[0].fromWindowId; 
+					targetParams = {
+						windowId: windowId,
+						index: relevantTabInfos[0].fromWindowIndex
+					}
+					chrome.tabs.move(curTab.id, targetParams, function(tabs){
+						tabMovementStatus[curTab.id] = relevantTabInfos.slice(1);
+						chrome.tabs.update(curTab.id,{selected:true},null);
+						chrome.window.update(windowId, {focused: true}, null)
+					});
+				});
 			});
 		},
 		duplicateTab: function(command, event, resp) {
@@ -73,7 +118,15 @@ var commandCore = {
 			{
 				"name": "PinTab",
 				"bind": "ctrl+shift+command+p"
-			}
+			},
+			{
+				"name": "MoveTabOut",
+				"bind": "ctrl+alt+down"
+			},
+			{
+				"name": "MoveTabIn",
+				"bind": "ctrl+alt+up"
+			},
 		];
 		resp("value", value);
 	}
@@ -92,6 +145,8 @@ var module = (function(){
 			"MoveTabRightMost": [c.moveTabRightMost, pd],
 			"DuplicateTab": [c.duplicateTab, pd],
 			"PinTab": [c.pinTab, pd]
+			"MoveTabOut": [c.moveTabOut],
+			"MoveTabIn": [c.moveTabIn],
 		},
 		"Control": {
 			"Commands": [cc.listCommands]

@@ -65,7 +65,7 @@ var core = (function(){
 					chrome.tabs.move(curTab.id, targetParams, function(tabs){
 						tabMovementStatus[curTab.id] = relevantTabInfos.slice(1);
 						chrome.tabs.update(curTab.id,{selected:true},null);
-						chrome.window.update(windowId, {focused: true}, null)
+						chrome.windows.update(windowId, {focused: true}, null)
 					});
 				});
 			});
@@ -88,6 +88,18 @@ var core = (function(){
 					}
 				}
 			});
+		},
+		duplicateIncognito: function() {
+			chrome.tabs.getSelected(null, function(tab){
+				chrome.windows.create({incognito:true}, function(window) {
+					chrome.tabs.query({windowId: window.id}, function(newTabs) {
+						chrome.tabs.update(newTabs[0].id, {url: tab.url}, function() {});
+					})
+				})
+			});
+		},
+		horizontalResizeWindows: function() {
+			
 		},
 	};
 })();
@@ -127,6 +139,10 @@ var commandCore = {
 				"name": "MoveTabIn",
 				"bind": "ctrl+alt+up"
 			},
+			{
+				"name": "DuplicateIncognito",
+				"bind": "ctrl+shift+command+n"
+			},
 		];
 		resp("value", value);
 	}
@@ -147,6 +163,7 @@ var module = (function(){
 			"PinTab": [c.pinTab],
 			"MoveTabOut": [c.moveTabOut],
 			"MoveTabIn": [c.moveTabIn],
+			"DuplicateIncognito": [c.duplicateIncognito]
 		},
 		"Control": {
 			"Commands": [cc.listCommands]

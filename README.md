@@ -1,0 +1,1 @@
+This is a reboot of an old extension that I wrote around 5 years back. I had uploaded this to Chrome Web Store and totally forgot about maintaining it. The reviews this extension gathered prompts me to take some time out and re-write it.

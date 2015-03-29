@@ -223,6 +223,22 @@ var module = (function(){
 			"GetCommands": [cc.listCommands]
 		}
 	};
+	
+	var callChain = function(fns, params, resp) {
+		var total = fns.length;
+		var response = {};
+		fns.forEach(function(fn) {
+			var callback = function (key, value) {
+				total--;
+				response[key] = value;
+				if (total <= 0) {
+					resp(response);
+				}
+			};
+			var args = params.concat(callback);
+			fn.apply(this, args);
+		});
+	}
 		
 	return {
 		init: function() {
@@ -233,14 +249,10 @@ var module = (function(){
 				port.onMessage.addListener((function(handler) {
 					return function(obj) {
 						var event = obj.event, command = obj.command, id = obj.id;
-				
-						var response = {id: obj.id, response: {}};
-						handler[command.name].forEach(function(fn){
-							fn(command, event, function(key, val) {
-								response.response[key] = val;
-							});
+						callChain(handler[command.name],[command, event], function(val) {
+							//console.log("Sending response to tab: ", obj);
+							port.postMessage({id: obj.id, response: val});
 						});
-						port.postMessage(response);
 					}
 				})(handlers[port.name]));
 			});

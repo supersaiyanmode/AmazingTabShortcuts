@@ -34,6 +34,7 @@
 	"manifest_version": 2,
 	"name": "Amazing Tab Shortcuts",
 	"permissions": [
+		"storage",
 		"tabs",
 		"http://*/*",
 		"https://*/*"

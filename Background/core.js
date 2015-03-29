@@ -94,7 +94,7 @@ var core = (function(){
 				chrome.windows.create({incognito:true}, function(window) {
 					chrome.tabs.query({windowId: window.id}, function(newTabs) {
 						chrome.tabs.update(newTabs[0].id, {url: tab.url}, function() {});
-					})
+					});
 				})
 			});
 		},

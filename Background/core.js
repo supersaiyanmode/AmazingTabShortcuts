@@ -104,47 +104,101 @@ var core = (function(){
 	};
 })();
 
+var keyBindingManager = (function() {
+	var keyBindings = {
+		"MoveTabLeft" : {
+			"bind": "ctrl+shift+left",
+			"description": "Moves the current tab to the left by one position."
+		},
+		"MoveTabRight":{
+			"bind": "ctrl+shift+right",
+			"description": "Moves the current tab to the right by one position."
+			
+		},
+		"MoveTabLeftMost": {
+			"bind": "ctrl+shift+alt+left",
+			"description": "Moves the current tab to the leftmost position."
+		},
+		"MoveTabRightMost": {
+			"bind": "ctrl+shift+alt+right",
+			"description": "Moves the current tab to the rightmost position."
+		},
+		"DuplicateTab": {
+			"bind": "ctrl+shift+command+d",
+			"description": "Duplicates the current tab."
+		},
+		"PinTab": {
+			"bind": "ctrl+shift+command+p",
+			"description": "Pins/unpins the current tab."
+		},
+		"MoveTabOut": {
+			"bind": "ctrl+alt+down",
+			"description": "Moves the tab out into a new window."
+		},
+		"MoveTabIn": {
+			"bind": "ctrl+alt+up",
+			"description": "Moves the tab back into the same window it was moved out from."
+		},
+		"DuplicateIncognito": {
+			"bind": "ctrl+shift+command+n",
+			"description": "Duplicate the current page in incognito mode."
+		},
+	};
+	
+	var readStorage = function(resp) {
+		chrome.storage.sync.get(null, function(items) {
+			Object.keys(items).filter(function(x) {
+					return x.startsWith("key_");
+				}).forEach(function(key) {
+					keyBindings[key.slice(4)].bind = items[key].bind || null;
+				});
+			var copy = JSON.parse(JSON.stringify(keyBindings));
+			console.log("Done reading config from store:", copy);
+			resp(copy);
+		});
+	};
+	
+	var writeStorage = function(obj, resp) {
+		var copy = {};
+		Object.keys(obj).forEach(function (key) {
+			copy["key_" + key] = {"bind": obj[key].bind || null};
+		});
+		chrome.storage.sync.set(copy, function() {
+			readStorage(resp);
+		});
+	};
+	
+	var stale = true;
+	
+	return {
+		get: function(resp) {
+			if (!stale) {
+				resp(JSON.parse(JSON.stringify(keyBindings)));
+			} else {
+				readStorage(function(obj) {
+					stale = false;
+					resp(obj);
+				})
+			}
+		},
+		set: function(obj, resp) {
+			var copy = JSON.parse(JSON.stringify(keyBindings));
+			Object.keys(obj)
+				.filter(function(x){return keyBindings.hasOwnProperty(x);})
+				.forEach(function(binding) {
+					copy[binding] = obj[binding];
+				});
+			writeStorage(copy, resp);
+		}
+		
+	}
+})();
+
 var commandCore = {
 	listCommands: function(cmd, event, resp) {
-		value = [
-			{
-				"name": "MoveTabLeft",
-				"bind": "ctrl+shift+left"
-			},
-			{
-				"name": "MoveTabRight",
-				"bind": "ctrl+shift+right"
-			},
-			{
-				"name": "MoveTabLeftMost",
-				"bind": "ctrl+shift+alt+left"
-			},
-			{
-				"name": "MoveTabRightMost",
-				"bind": "ctrl+shift+alt+right"
-			},
-			{
-				"name": "DuplicateTab",
-				"bind": "ctrl+shift+command+d"
-			},
-			{
-				"name": "PinTab",
-				"bind": "ctrl+shift+command+p"
-			},
-			{
-				"name": "MoveTabOut",
-				"bind": "ctrl+alt+down"
-			},
-			{
-				"name": "MoveTabIn",
-				"bind": "ctrl+alt+up"
-			},
-			{
-				"name": "DuplicateIncognito",
-				"bind": "ctrl+shift+command+n"
-			},
-		];
-		resp("value", value);
+		keyBindingManager.get(function (val) {
+			resp("value", val);
+		})
 	}
 }
 

@@ -26,6 +26,11 @@
 		"32": "icons/icon16.png",
 		"48": "icons/icon128.png"
 	},
+	"options_ui": {
+		"page": "options/main.html",
+		"chrome_style": false,
+		"open_in_tab": true
+	},
 	"manifest_version": 2,
 	"name": "Amazing Tab Shortcuts",
 	"permissions": [

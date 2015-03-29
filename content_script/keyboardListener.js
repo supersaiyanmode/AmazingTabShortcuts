@@ -69,9 +69,9 @@ var mouseTrap = (function(){
 	return {
 		init: function(commands, callback, doneFn) {
 			Mousetrap.reset();
-			commands.forEach(function(cmd) {
-				Mousetrap.bind(cmd.bind, function(event) {
-					callback(cmd.name);
+			Object.keys(commands).forEach(function(cmd) {
+				Mousetrap.bind(commands[cmd].bind, function(event) {
+					callback(cmd);
 				});
 			})
 			doneFn();

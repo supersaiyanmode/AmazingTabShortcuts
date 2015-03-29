@@ -26,7 +26,6 @@
 		"32": "icons/icon16.png",
 		"48": "icons/icon128.png"
 	},
-	"key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC/C8HEEErmi5DmTrhhQteO4YBq3WjyKD4lzurCuN5tAVUISQXgQGXp3bsdpEGFUGjFTdWkNq+cSkmRlS+ds6kNniGOj/YbTse8RUTdm3BO7LFzmgCD6Fp5rp2gt9gCW6Iy8je4ohbfUAbLmNAuvM+KE/sYwsn7CemotgUuPvt6pwIDAQAB",
 	"manifest_version": 2,
 	"name": "Amazing Tab Shortcuts",
 	"permissions": [

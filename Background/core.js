@@ -206,7 +206,7 @@ var commandCore = {
 var module = (function(){
 	var c = core;
 	var cc = commandCore;
-
+	
 	var handlers = {
 		"Tab": {
 			"MoveTabLeft": [c.moveTabLeft],
@@ -220,7 +220,7 @@ var module = (function(){
 			"DuplicateIncognito": [c.duplicateIncognito]
 		},
 		"Control": {
-			"Commands": [cc.listCommands]
+			"GetCommands": [cc.listCommands]
 		}
 	};
 		

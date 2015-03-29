@@ -51,7 +51,7 @@ var client = (function(){
 			tabMessaging = messageManager(tabPort);
 			controlMessaging = messageManager(controlPort);
 			
-			controlMessaging.send({name:"Commands"},function(cmd){
+			controlMessaging.send({name:"GetCommands"},function(cmd){
 				commands = cmd.value;
 				doneFn();
 			});

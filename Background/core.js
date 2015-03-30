@@ -195,7 +195,7 @@ var keyBindingManager = (function() {
 })();
 
 var commandCore = {
-	listCommands: function(cmd, event, resp) {
+	getCommands: function(cmd, event, resp) {
 		keyBindingManager.get(function (val) {
 			resp("value", val);
 		})
@@ -220,7 +220,7 @@ var module = (function(){
 			"DuplicateIncognito": [c.duplicateIncognito]
 		},
 		"Control": {
-			"GetCommands": [cc.listCommands]
+			"GetCommands": [cc.getCommands],
 		}
 	};
 	

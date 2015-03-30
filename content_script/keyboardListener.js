@@ -13,6 +13,7 @@ function messageManager(port){
 	
 	port.onMessage.addListener(function(obj) {
 		if (!messageQueue[obj.id]) {
+			console.log("No such id in memory: " + obj.id);
 			return;
 		}
 		
@@ -21,6 +22,7 @@ function messageManager(port){
 		delete messageQueue[obj.id];
 		
 		if (respFn) {
+			//console.log("Got generic response from backend:", obj);
 			respFn(obj.response);
 		}
 	});
@@ -33,6 +35,7 @@ function messageManager(port){
 				command: cmd
 			}
 			messageQueue[id] = {respFn: resp}
+			//console.log("Send message to backend: ", obj);
 			port.postMessage(obj);
 		}
 	}
@@ -67,8 +70,10 @@ var client = (function(){
 var mouseTrap = (function(){
 	return {
 		init: function(commands, callback, doneFn) {
+			//console.log("MouseTrap initialised: ", commands);
 			Mousetrap.reset();
 			Object.keys(commands).forEach(function(cmd) {
+				//console.log("Binding:" + JSON.stringify(commands[cmd]));
 				Mousetrap.bind(commands[cmd].bind, function(event) {
 					callback(cmd);
 				});

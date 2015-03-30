@@ -78,6 +78,15 @@ var mouseTrap = (function(){
 	}
 }())
 
-client.init(function(){
-	mouseTrap.init(client.commands(), client.process, function(){});
+var init = function(){
+	client.init(function(){
+		mouseTrap.init(client.commands(), client.process, function(){});
+	});
+};
+
+init();
+
+chrome.storage.onChanged.addListener(function(changes, namespace) {
+	//console.log("Storage has changed. Reloading..");
+	init();
 });

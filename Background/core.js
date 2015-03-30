@@ -163,9 +163,7 @@ var keyBindingManager = (function() {
 		Object.keys(obj).forEach(function (key) {
 			copy["key_" + key] = {"bind": obj[key].bind || null};
 		});
-		chrome.storage.sync.set(copy, function() {
-			readStorage(resp);
-		});
+		chrome.storage.sync.set(copy, resp);
 	};
 	
 	var stale = true;

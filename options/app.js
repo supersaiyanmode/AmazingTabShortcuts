@@ -111,6 +111,14 @@ app.controller("OptionsController", function($scope) {
 		mouseTrap.init(commands, highlightFn, function(){});
 	});
 	
+	$scope.record = function(command) {
+		Mousetrap.record(function(keys) {
+			console.log("New keys:" + keys.join(" "));
+			$scope.commands[command].bind = keys.join(" ");
+			$scope.$apply();
+		});
+	}
+	
 	
 	$scope.save = function() {
 		client.updateCommands($scope.commands, function(res) {

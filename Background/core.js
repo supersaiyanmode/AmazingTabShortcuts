@@ -186,7 +186,10 @@ var keyBindingManager = (function() {
 				.forEach(function(binding) {
 					copy[binding] = obj[binding];
 				});
-			writeStorage(copy, resp);
+			writeStorage(copy, function(r1){
+				stale = true;
+				resp("success",true);
+			});
 		}
 		
 	}
@@ -197,6 +200,9 @@ var commandCore = {
 		keyBindingManager.get(function (val) {
 			resp("value", val);
 		})
+	},
+	setCommands: function(cmd, event, resp) {
+		keyBindingManager.set(cmd.commands, resp);
 	}
 }
 
@@ -219,6 +225,7 @@ var module = (function(){
 		},
 		"Control": {
 			"GetCommands": [cc.getCommands],
+			"SetCommands": [cc.setCommands]
 		}
 	};
 	

@@ -40,17 +40,16 @@ function messageManager(port){
 
 
 var client = (function(){
-	var tabMessaging, controlMessaging;
+	var tabPort = chrome.runtime.connect({name:"Tab"});
+	var tabMessaging = messageManager(tabPort);
+	
+	var controlPort = chrome.runtime.connect({name:"Control"});
+	controlMessaging = messageManager(controlPort);
 	
 	var commands;
 	
 	return {
 		init: function(doneFn) {
-			var tabPort = chrome.runtime.connect({name:"Tab"});
-			var controlPort = chrome.runtime.connect({name:"Control"});
-			tabMessaging = messageManager(tabPort);
-			controlMessaging = messageManager(controlPort);
-			
 			controlMessaging.send({name:"GetCommands"},function(cmd){
 				commands = cmd.value;
 				doneFn();

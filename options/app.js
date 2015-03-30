@@ -65,6 +65,12 @@ var client = (function(){
 		commands: function() {
 			return commands;
 		},
+		updateCommands: function(cmdObj, resp) {
+			controlMessaging.send({name:"SetCommands", commands: cmdObj},function(response){
+				console.log("Response from backend: ", response);
+				resp(response);
+			});
+		},
 		process: function(command) {
 			tabMessaging.send({name:command}, function(resp){});
 		}
@@ -104,4 +110,11 @@ app.controller("OptionsController", function($scope) {
 		$scope.$apply();
 		mouseTrap.init(commands, highlightFn, function(){});
 	});
+	
+	
+	$scope.save = function() {
+		client.updateCommands($scope.commands, function(res) {
+			alert("Done!");
+		})
+	}
 });

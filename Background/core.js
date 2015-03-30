@@ -253,9 +253,10 @@ var module = (function(){
 				}
 				port.onMessage.addListener((function(handler) {
 					return function(obj) {
+						//console.log("Got query: ", obj);
 						var event = obj.event, command = obj.command, id = obj.id;
 						callChain(handler[command.name],[command, event], function(val) {
-							//console.log("Sending response to tab: ", obj);
+							//console.log("Sending response to tab: ", val);
 							port.postMessage({id: obj.id, response: val});
 						});
 					}

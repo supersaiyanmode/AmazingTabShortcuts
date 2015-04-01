@@ -1,38 +1,43 @@
+'use strict';
+
+var tabStatus = {
+	pinned: {},
+	movement: {},
+	mru: []
+}
+
 var core = (function(){
-	var pinnedTabStatus = {};
-	var tabMovementStatus = {};
-	
 	return {
-		moveTabLeft: function(command, event, resp) {
+		moveTabLeft: function() {
 			chrome.tabs.getSelected(null, function(tab){
 				if (tab.index > 0) {
 					chrome.tabs.move(tab.id,{index: tab.index-1},null);
 				}
 			});
 		},
-		moveTabRight: function(command, event, resp) {
+		moveTabRight: function() {
 			chrome.tabs.getSelected(null, function(tab){
 				chrome.tabs.move(tab.id,{index: tab.index+1},null);
 			});
 		},
-		moveTabLeftMost: function(command, event, resp) {
+		moveTabLeftMost: function() {
 			chrome.tabs.getSelected(null, function(tab){
 				if (tab.index > 0)
 					chrome.tabs.move(tab.id,{index: 0},null);
 			});
 		},
-		moveTabRightMost: function(command, event, resp) {
+		moveTabRightMost: function() {
 			chrome.tabs.getSelected(null, function(tab){
 				chrome.tabs.move(tab.id,{index: 1000},null); //max 1000
 			});
 		},
-		moveTabOut: function(command, event, resp) {
+		moveTabOut: function() {
 			chrome.tabs.getSelected(null, function(curTab) {
 				chrome.windows.create({tabId:curTab.id}, function(window){
-					if (!tabMovementStatus[curTab.id]) {
-						tabMovementStatus[curTab.id] = [];
+					if (!tabStatus.movement[curTab.id]) {
+						tabStatus.movement[curTab.id] = [];
 					}
-					tabMovementStatus[curTab.id].push({
+					tabStatus.movement[curTab.id].push({
 						fromWindowId: curTab.windowId,
 						toWindowId: window.id,
 						fromWindowIndex: curTab.index,
@@ -42,9 +47,9 @@ var core = (function(){
 				});
 			});
 		},
-		moveTabIn: function(command, event, resp) {
+		moveTabIn: function() {
 			chrome.tabs.getSelected(null, function(curTab) {
-				var tabInfos = tabMovementStatus[curTab.id];
+				var tabInfos = tabStatus.movement[curTab.id];
 				if (!tabInfos) {
 					return;
 				}
@@ -63,25 +68,25 @@ var core = (function(){
 						index: relevantTabInfos[0].fromWindowIndex
 					}
 					chrome.tabs.move(curTab.id, targetParams, function(tabs){
-						tabMovementStatus[curTab.id] = relevantTabInfos.slice(1);
+						tabStatus.movement[curTab.id] = relevantTabInfos.slice(1);
 						chrome.tabs.update(curTab.id,{selected:true},null);
 						chrome.windows.update(windowId, {focused: true}, null)
 					});
 				});
 			});
 		},
-		duplicateTab: function(command, event, resp) {
+		duplicateTab: function() {
 			chrome.tabs.getSelected(null, function(tab){
 				chrome.tabs.duplicate(tab.id, null);
 			});	
 		},
-		pinTab: function(command, event, resp) {
+		pinTab: function() {
 			chrome.tabs.getSelected(null, function(tab){
 				if (!tab.pinned) {
-					pinnedTabStatus[tab.id] = {index: tab.index};
+					tabStatus.pinned[tab.id] = {index: tab.index};
 					chrome.tabs.update(tab.id, {pinned: true}, null);
 				} else {
-					var info = pinnedTabStatus[tab.id];
+					var info = tabStatus.pinned[tab.id];
 					chrome.tabs.update(tab.id, {pinned: false}, null);
 					if (info) {
 						chrome.tabs.move(tab.id,{index: info.index},null);
@@ -95,8 +100,16 @@ var core = (function(){
 					chrome.tabs.query({windowId: window.id}, function(newTabs) {
 						chrome.tabs.update(newTabs[0].id, {url: tab.url}, function() {});
 					});
-				})
+				});
 			});
+		},
+		previousTab: function() {
+			curActiveInfo = tabStatus.mru[1];
+			if (!curActiveInfo) {
+				return;
+			}
+			chrome.tabs.update(curActiveInfo.tabId,{selected:true},null);
+			chrome.windows.update(curActiveInfo.windowId, {focused: true}, null);
 		},
 		horizontalResizeWindows: function() {
 			
@@ -104,108 +117,11 @@ var core = (function(){
 	};
 })();
 
-var keyBindingManager = (function() {
-	var keyBindings = {
-		"MoveTabLeft" : {
-			"bind": "ctrl+shift+left",
-			"description": "Moves the current tab to the left by one position."
-		},
-		"MoveTabRight":{
-			"bind": "ctrl+shift+right",
-			"description": "Moves the current tab to the right by one position."
-			
-		},
-		"MoveTabLeftMost": {
-			"bind": "ctrl+shift+alt+left",
-			"description": "Moves the current tab to the leftmost position."
-		},
-		"MoveTabRightMost": {
-			"bind": "ctrl+shift+alt+right",
-			"description": "Moves the current tab to the rightmost position."
-		},
-		"DuplicateTab": {
-			"bind": "ctrl+shift+command+d",
-			"description": "Duplicates the current tab."
-		},
-		"PinTab": {
-			"bind": "ctrl+shift+command+p",
-			"description": "Pins/unpins the current tab."
-		},
-		"MoveTabOut": {
-			"bind": "ctrl+alt+down",
-			"description": "Moves the tab out into a new window."
-		},
-		"MoveTabIn": {
-			"bind": "ctrl+alt+up",
-			"description": "Moves the tab back into the same window it was moved out from."
-		},
-		"DuplicateIncognito": {
-			"bind": "ctrl+shift+command+n",
-			"description": "Duplicate the current page in incognito mode."
-		},
-	};
-	
-	var readStorage = function(resp) {
-		chrome.storage.sync.get(null, function(items) {
-			Object.keys(items).filter(function(x) {
-					return x.startsWith("key_");
-				}).forEach(function(key) {
-					keyBindings[key.slice(4)].bind = items[key].bind || null;
-				});
-			var copy = JSON.parse(JSON.stringify(keyBindings));
-			console.log("Done reading config from store:", copy);
-			resp(copy);
-		});
-	};
-	
-	var writeStorage = function(obj, resp) {
-		var copy = {};
-		Object.keys(obj).forEach(function (key) {
-			copy["key_" + key] = {"bind": obj[key].bind || null};
-		});
-		chrome.storage.sync.set(copy, resp);
-	};
-	
-	var stale = true;
-	
-	return {
-		get: function(resp) {
-			if (!stale) {
-				resp(JSON.parse(JSON.stringify(keyBindings)));
-			} else {
-				readStorage(function(obj) {
-					stale = false;
-					resp(obj);
-				})
-			}
-		},
-		set: function(obj, resp) {
-			var copy = JSON.parse(JSON.stringify(keyBindings));
-			Object.keys(obj)
-				.filter(function(x){return keyBindings.hasOwnProperty(x);})
-				.forEach(function(binding) {
-					copy[binding] = obj[binding];
-				});
-			writeStorage(copy, function(r1){
-				stale = true;
-				resp("success",true);
-			});
-		}
+var commandCore = {
+	getCommands: function() {
 		
 	}
-})();
-
-var commandCore = {
-	getCommands: function(cmd, event, resp) {
-		keyBindingManager.get(function (val) {
-			resp("value", val);
-		})
-	},
-	setCommands: function(cmd, event, resp) {
-		keyBindingManager.set(cmd.commands, resp);
-	}
-}
-
+};
 
 var module = (function(){
 	var c = core;
@@ -221,11 +137,11 @@ var module = (function(){
 			"PinTab": [c.pinTab],
 			"MoveTabOut": [c.moveTabOut],
 			"MoveTabIn": [c.moveTabIn],
-			"DuplicateIncognito": [c.duplicateIncognito]
+			"DuplicateIncognito": [c.duplicateIncognito],
+			"PreviousTab": [c.previousTab]
 		},
 		"Control": {
 			"GetCommands": [cc.getCommands],
-			"SetCommands": [cc.setCommands]
 		}
 	};
 	
@@ -244,24 +160,27 @@ var module = (function(){
 			fn.apply(this, args);
 		});
 	}
+	
+	var tabSelectionChanged = function(activeInfo) {
+		tabStatus.mru = [activeInfo].concat(tabStatus.mru.filter(function(x) {
+			return x.tabId != activeInfo.tabId;
+		}));
+	};
+	
+	var tabRemoved = function(activeInfo) {
+		tabStatus.mru = tabStatus.mru.filter(function(x) {
+			return x.tabId != activeInfo.tabId;
+		});
+	};
 		
 	return {
 		init: function() {
-			chrome.extension.onConnect.addListener(function(port) {
-				if (!(port.name in handlers)) {
-					return;
-				}
-				port.onMessage.addListener((function(handler) {
-					return function(obj) {
-						//console.log("Got query: ", obj);
-						var event = obj.event, command = obj.command, id = obj.id;
-						callChain(handler[command.name],[command, event], function(val) {
-							//console.log("Sending response to tab: ", val);
-							port.postMessage({id: obj.id, response: val});
-						});
-					}
-				})(handlers[port.name]));
+			chrome.commands.onCommand.addListener(function (command) {
+				console.log("Command: " + command);
+				callChain(handlers.Tab[command], [], function(val) {});
 			});
+			chrome.tabs.onActivated.addListener(tabSelectionChanged);
+			chrome.tabs.onRemoved.addListener(tabRemoved);
 		},
 	};
 }());

@@ -26,11 +26,6 @@
 		"32": "icons/icon16.png",
 		"48": "icons/icon128.png"
 	},
-	"options_ui": {
-		"page": "options/main.html",
-		"chrome_style": false,
-		"open_in_tab": true
-	},
 	"manifest_version": 2,
 	"name": "Amazing Tab Shortcuts",
 	"permissions": [
@@ -39,6 +34,38 @@
 		"http://*/*",
 		"https://*/*"
 	],
+	"commands": {
+		"MoveTabLeft" : {
+			"description": "Moves the current tab to the left by one position."
+		},
+		"MoveTabRight" : {
+			"description": "Moves the current tab to the right by one position."
+		},
+		"MoveTabLeftMost" : {
+			"description": "Moves the current tab to the leftmost position."
+		},
+		"MoveTabRightMost" : {
+			"description": "Moves the current tab to the rightmost position."
+		},
+		"DuplicateTab": {
+			"description": "Duplicates the current tab."
+		},
+		"PinTab": {
+			"description": "Pins/unpins the current tab."
+		},
+		"MoveTabOut": {
+			"description": "Moves the tab out into a new window."
+		},
+		"MoveTabIn": {
+			"description": "Moves the tab back into the same window it was moved out from."
+		},
+		"DuplicateIncognito": {
+			"description": "Duplicate the current page in incognito mode."
+		},
+		"PreviousTab": {
+			"description": "Switch to previous tab. Similar to Alt+Tab."
+		}
+	},
 	"update_url": "http://clients2.google.com/service/update2/crx",
 	"version": "0.0.1"
 }
